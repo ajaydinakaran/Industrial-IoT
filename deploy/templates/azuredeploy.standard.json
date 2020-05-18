@@ -322,6 +322,13 @@
             "metadata": {
                 "description": "Specifies the name of Azure Application Insights instance created as part of this deployment."
             }
+        },
+        "tags": {
+            "type": "object",
+            "defaultValue": {},
+            "metadata": {
+                "description": "Tags for Azure resources."
+            }
         }
     },
     "variables": {
@@ -361,6 +368,7 @@
             "name": "[parameters('dpsName')]",
             "apiVersion": "2018-01-22",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "sku": {
                 "name": "[parameters('dpsSku')]",
                 "capacity": "[parameters('dpsCapacity')]"
@@ -381,6 +389,7 @@
             "name": "[parameters('datalakeName')]",
             "apiVersion": "2019-04-01",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "kind": "StorageV2",
             "sku": {
                 "name": "[parameters('datalakeSkuName')]"
@@ -416,6 +425,7 @@
             "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
             "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', variables('datalakeEventHubConsumerGroup'))]",
             "apiVersion": "2017-04-01",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "userMetadata": "CDM Telemetry Consumer Group"
             },
@@ -428,6 +438,7 @@
             "condition": "[not(empty(parameters('datalakeServicePrincipalId')))]",
             "apiVersion": "2018-09-01-preview",
             "name": "[concat(parameters('datalakeName'), '/Microsoft.Authorization/', guid(uniqueString(parameters('datalakeName'))))]",
+            "tags" : "[parameters('tags')]",
             "properties": {
                 "roleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
                 "principalId": "[parameters('datalakeServicePrincipalId')]",
@@ -444,6 +455,7 @@
             "apiVersion": "2018-08-15-preview",
             "location": "[resourceGroup().location]",
             "kind": "[parameters('tsiEnvironmentKind')]",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "storageConfiguration": {
                     "accountName": "[parameters('tsiStorageName')]",
@@ -477,6 +489,7 @@
             "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
             "apiVersion": "2017-04-01",
             "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', variables('tsiEventHubConsumerGroup'))]",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "userMetadata": "Tsi Telemetry Consumer Group"
             },
@@ -489,6 +502,7 @@
             "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', parameters('tsiEventHubAuthorization'))]",
             "apiVersion": "2017-04-01",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "rights": [
                     "Listen"
@@ -503,6 +517,7 @@
             "name": "[concat(parameters('tsiEnvironmentName'), '/', variables('tsiEventSourceName'))]",
             "apiVersion": "2018-08-15-preview",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "kind": "Microsoft.EventHub",
             "properties": {
                 "eventSourceResourceId": "[variables('eventHubResourceId')]",
@@ -525,6 +540,7 @@
             "type": "Microsoft.Kusto/clusters",
             "apiVersion": "2020-02-15",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "sku": {
                 "name": "[parameters('kustoSkuName')]",
                 "tier": "[parameters('kustoSkuTier')]",
@@ -546,6 +562,7 @@
             "type": "Microsoft.Kusto/clusters/databases",
             "apiVersion": "2020-02-15",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "kind": "ReadWrite",
             "properties": {
                 "softDeletePeriod": "P365D",
@@ -560,6 +577,7 @@
             "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
             "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', variables('kustoEventHubConsumerGroup'))]",
             "apiVersion": "2017-04-01",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "userMetadata": "Kusto Telemetry Consumer Group"
             },
@@ -572,6 +590,7 @@
             "type": "Microsoft.Kusto/Clusters/Databases/DataConnections",
             "apiVersion": "2020-02-15",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "kind": "EventHub",
             "properties": {
                 "eventHubResourceId": "[variables('eventHubResourceId')]",
@@ -593,6 +612,7 @@
             "name": "[parameters('signalRName')]",
             "apiVersion": "2018-10-01",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "hostNamePrefix": "[parameters('signalRName')]",
                 "features": [
@@ -620,6 +640,7 @@
             "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
             "apiVersion": "2017-04-01",
             "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', variables('signalREventHubConsumerGroup'))]",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "userMetadata": "UX Telemetry Consumer Group"
             },
@@ -632,6 +653,7 @@
             "name": "[parameters('workspaceName')]",
             "apiVersion": "2015-11-01-preview",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "properties": {
                 "sku": {
                     "Name": "[parameters('workspaceSku')]"
@@ -649,6 +671,7 @@
             "name": "[parameters('appInsightsName')]",
             "apiVersion": "2015-05-01",
             "location": "[resourceGroup().location]",
+            "tags": "[parameters('tags')]",
             "kind": "web",
             "properties": {
                 "Application_Type": "web",
@@ -660,7 +683,7 @@
         {
             "comments": "Save standard infrastructure configuration in keyVault.",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[variables('standardConfigurationResourceName')]",
             "properties": {
                 "mode": "Incremental",
@@ -719,7 +742,8 @@
                                 "value": "[reference(variables('tsiEnvironmentResourceId'), '2018-08-15-preview').dataAccessFQDN]"
                             }
                         ]
-                    }
+                    },
+                    "tags": "[parameters('tags')]"
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
@@ -738,14 +762,15 @@
         {
             "comments": "Create azure workbook",
             "type": "Microsoft.Resources/deployments",
-            "apiVersion": "2017-05-10",
+            "apiVersion": "2019-08-01",
             "name": "[variables('workbookConfigurationResourceName')]",
             "properties": {
                 "mode": "Incremental",
                 "parameters": {
                     "workbookSourceId": {
                         "value": "[resourceId('Microsoft.OperationalInsights/workspaces', parameters('workspaceName'))]"
-                    }
+                    },
+                    "tags": "[parameters('tags')]"
                 },
                 "templateLink": {
                     "contentVersion": "1.0.0.0",
