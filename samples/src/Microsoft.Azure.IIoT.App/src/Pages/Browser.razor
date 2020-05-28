@@ -160,12 +160,11 @@
 
             @if (node.NodeClass == NodeClass.Variable)
             {
-                <td>
-                    <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishingAsync(EndpointId, node, EventArgs))" />
-                    @{string output = (node.Publishing == true) ? "On" : "Off";}
-                    @output
-                </td>
-                <td>
+            <td>
+                @{string pubStatus = (node.Publishing == true) ? "Turn off" : "Turn on";}
+                <button class="btn btn-primary" @onclick="@(() => SetPublishingAsync(EndpointId, node))">@pubStatus</button>
+            </td>
+                <td class="space-wrap">
                     @if (node.Publishing == true && node.PublishedItem != null)
                     {
                         <label>Sampling:</label><a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node, drawer.Publisher))">
@@ -403,9 +402,9 @@
     /// </summary>
     /// <param name="endpointId"></param>
     /// <param name="node"></param>
-    private async Task SetPublishingAsync(string endpointId, ListNode node, ChangeEventArgs ev)
+    private async Task SetPublishingAsync(string endpointId, ListNode node)
     {
-        if ((bool)ev?.Value)
+        if (!node.Publishing)
         {
             await PublishNodeAsync(endpointId, node);
         }
