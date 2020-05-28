@@ -42,8 +42,8 @@
             <th>Security Policy</th>
             <th class="th-short">Security Level</th>
             <th>Endpoint State</th>
-            <th>Toggle Endpoint</th>
             <th>Activation Status</th>
+            <th>Toggle Endpoint</th>
             <th></th>
 
             @if (IsIdGiven(DiscovererId))
@@ -67,72 +67,49 @@
     <tbody>
         @foreach (var endpoint in _pagedendpointList.Results)
         {
-            <tr class="@GetEndpointVisibilityString(endpoint)">
-                @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready ||
-                 endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
-                {
-                    <td class="td-url-wide">
-                        @{ string discover = DiscovererId ?? RegistryHelper.PathAll; }
-                        @{ string application = ApplicationId ?? RegistryHelper.PathAll; }
-                        @{ string supervisor = SupervisorId ?? RegistryHelper.PathAll; }
-                        <a href='browser/1/@discover/@application/@supervisor/@endpoint.EndpointModel.Registration.Id'>
-                            @endpoint.EndpointModel.Registration.Endpoint.Url
-                        </a>
-                    </td>
-                }
-                else
-                {
-                    <td class="td-url-wide">@endpoint.EndpointModel.Registration.Endpoint.Url</td>
-                }
-                <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityMode</td>
-                @{ var securityPolicy = endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy[(endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.LastIndexOf("#") + 1)..endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.Length];}
-                <td>@securityPolicy</td>
-                <td class="td-short">@endpoint.EndpointModel.Registration.SecurityLevel</td>
-                <td>@(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")</td>
-                <td>
-                    @if (IsEndpointActivated(endpoint))
-                    {
-                        @if (!IsEndpointSeen(endpoint))
-                        {
-                            <input type="checkbox" checked disabled />
-                        }
-                        else
-                        {
-                            <input type="checkbox" checked
-                                   @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
-                        }
-                        <label>Active</label>
-                    }
-                    else
-                    {
-                        @if (!IsEndpointSeen(endpoint))
-                        {
-                            <input type="checkbox" disabled />
-                        }
-                        else
-                        {
-                            <input type="checkbox"
-                                   @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
-                        }
-                        <label></label>
-                    }
+        <tr class="@GetEndpointVisibilityString(endpoint)">
+            @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready ||
+            endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
+            {
+                <td class="td-url-wide">
+                    @{ string discover = DiscovererId ?? RegistryHelper.PathAll; }
+                    @{ string application = ApplicationId ?? RegistryHelper.PathAll; }
+                    @{ string supervisor = SupervisorId ?? RegistryHelper.PathAll; }
+                    <a href='browser/1/@discover/@application/@supervisor/@endpoint.EndpointModel.Registration.Id'>
+                        @endpoint.EndpointModel.Registration.Endpoint.Url
+                    </a>
                 </td>
-                <td>@endpoint.EndpointModel.ActivationState.ToString()</td>
-                @if (IsEndpointSeen(endpoint) && IsEndpointActivated(endpoint))
-                {
-                    <td>
-                        <a class="ellipsis-space" href='publishedNodes/1/@endpoint.EndpointModel.Registration.Id/@DiscovererId/@ApplicationId/@SupervisorId'>Published Nodes</a>
-                    </td>
-                }
-                else
-                {
-                    <td></td>
-                }
-                @if (IsIdGiven(DiscovererId) || IsIdGiven(ApplicationId))
-                {
-                    <td></td>
-                }
-            </tr>
+            }
+            else
+            {
+                <td class="td-url-wide">@endpoint.EndpointModel.Registration.Endpoint.Url</td>
+            }
+            <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityMode</td>
+            @{ var securityPolicy = endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy[(endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.LastIndexOf("#") + 1)..endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy.Length];}
+            <td>@securityPolicy</td>
+            <td class="td-short">@endpoint.EndpointModel.Registration.SecurityLevel</td>
+            <td>@(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")</td>
+            <td>@endpoint.EndpointModel.ActivationState.ToString()</td>
+            <td>
+                @{string activationStatus = IsEndpointActivated(endpoint) == true ? "Deactivate" : "Activate  ";}
+                @{bool isDisabled = !IsEndpointSeen(endpoint);}
+                <button class="btn btn-primary" disabled="@isDisabled" @onclick="(() => SetActivation(endpoint))">@activationStatus</button>
+            </td>
+            @if (IsEndpointSeen(endpoint) && IsEndpointActivated(endpoint))
+            {
+                <td>
+                    <a class="ellipsis-space" href='publishedNodes/1/@endpoint.EndpointModel.Registration.Id/@DiscovererId/@ApplicationId/@SupervisorId'>Published Nodes</a>
+                </td>
+            }
+            else
+            {
+                <td></td>
+            }
+            @if (IsIdGiven(DiscovererId) || IsIdGiven(ApplicationId))
+            {
+                <td></td>
+            }
+        </tr>
         }
     </tbody>
 </table>
@@ -277,9 +254,11 @@
     /// <param name="endpointId"></param>
     /// <param name="checkedValue"></param>
     /// <returns></returns>
-    private async Task SetActivation(string endpointId, object checkedValue)
+    private async Task SetActivation(EndpointInfo endpoint)
     {
-        if ((bool)checkedValue)
+        string endpointId = endpoint.EndpointModel.Registration.Id;
+        
+        if (!IsEndpointActivated(endpoint))
         {
             try
             {
